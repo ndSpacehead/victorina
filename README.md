@@ -1,2 +1,3 @@
 # victorina
-Question-answer game
+
+Question-answer game.
