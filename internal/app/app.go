@@ -7,9 +7,12 @@ import (
 )
 
 func Run() error {
-	db, err := storage.New()
+	c := readConfig()
+	repo, err := storage.New(storage.Config{
+		Filename: c.dbFilename,
+	})
 	if err != nil {
 		return err
 	}
-	return db.Ping(context.Background())
+	return repo.Ping(context.Background())
 }
