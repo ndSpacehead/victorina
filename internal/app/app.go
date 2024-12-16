@@ -6,6 +6,7 @@ import (
 	"victorina/internal/storage"
 )
 
+// Run is a point of initialize, start and shutdown application components.
 func Run() error {
 	c := readConfig()
 	repo, err := storage.New(storage.Config{
