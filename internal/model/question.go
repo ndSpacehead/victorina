@@ -6,12 +6,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// QuestionRepository
+// QuestionRepository is a CRUD API for question entity.
 type QuestionRepository interface {
 	// CreateQuestion writes new question to database.
 	CreateQuestion(context.Context, CreateQuestionRequest) (uuid.UUID, error)
 
-	// ReadQuestion get question data from database by question ID.
+	// ReadQuestion returns question data from database by question ID.
 	ReadQuestion(context.Context, uuid.UUID) (*Question, error)
 
 	// AllQuestions returns list of all stored questions.
