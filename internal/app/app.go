@@ -1,5 +1,15 @@
 package app
 
+import (
+	"context"
+
+	"victorina/internal/storage"
+)
+
 func Run() error {
-	return nil
+	db, err := storage.New()
+	if err != nil {
+		return err
+	}
+	return db.Ping(context.Background())
 }
