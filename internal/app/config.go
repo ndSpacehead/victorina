@@ -1,16 +1,27 @@
 package app
 
-import "flag"
+import (
+	"flag"
+	"os"
+	"path/filepath"
+)
 
-const defaultPathToDB = "./vic.db"
+const defaultDBFilename = ":default:"
 
 type config struct {
 	dbFilename string
 }
 
-func readConfig() config {
+func readConfig() (config, error) {
 	var out config
-	flag.StringVar(&out.dbFilename, "b", defaultPathToDB, "database filename")
+	flag.StringVar(&out.dbFilename, "b", defaultDBFilename, "database filename")
 	flag.Parse()
-	return out
+	if out.dbFilename == defaultDBFilename {
+		ex, err := os.Executable()
+		if err != nil {
+			return out, err
+		}
+		out.dbFilename = filepath.Join(filepath.Dir(ex), "vic.db")
+	}
+	return out, nil
 }

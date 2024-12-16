@@ -8,7 +8,10 @@ import (
 
 // Run is a point of initialize, start and shutdown application components.
 func Run() error {
-	c := readConfig()
+	c, err := readConfig()
+	if err != nil {
+		return err
+	}
 	repo, err := storage.New(storage.Config{
 		Filename: c.dbFilename,
 	})
