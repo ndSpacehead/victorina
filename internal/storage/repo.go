@@ -6,10 +6,14 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+
+	"victorina/internal/model"
 )
 
 // Repository is an interface for DB.
 type Repository interface {
+	model.QuestionRepository
+
 	// Close closes the database and prevents new queries from starting.
 	Close(context.Context) error
 

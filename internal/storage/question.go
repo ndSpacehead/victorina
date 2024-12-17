@@ -26,7 +26,7 @@ VALUES (?, ?, ?, ?);`
 	return id, err
 }
 
-// ReadQuestion get question data from database by question ID.
+// ReadQuestion returns question data from database by question ID.
 func (repo *repository) ReadQuestion(ctx context.Context, id uuid.UUID) (*model.Question, error) {
 	out := model.Question{
 		ID: id,
