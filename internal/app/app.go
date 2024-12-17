@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 
 	"victorina/internal/server"
 	"victorina/internal/storage"
+	"victorina/pkg/browser"
 )
 
 // Run is a point of initialize, start and shutdown application components.
@@ -59,5 +61,7 @@ func Run() error {
 		}
 		return nil
 	})
+	fmt.Printf("open UI: %s\n", srv.Address())
+	browser.OpenURL(srv.Address())
 	return g.Wait()
 }
