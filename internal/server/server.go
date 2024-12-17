@@ -2,12 +2,19 @@ package server
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"net/http"
 	"strconv"
 
 	"victorina/internal/storage"
 )
+
+//go:embed template
+var indexHTML embed.FS
+
+//go:embed static
+var staticFiles embed.FS
 
 // Server is a generic server contract.
 type Server interface {
@@ -27,6 +34,7 @@ type Config struct {
 type server struct {
 	repo storage.Repository
 	srv  *http.Server
+	tpl  *templates
 }
 
 // New is a constructor of HTTP-server.
@@ -34,15 +42,23 @@ func New(c Config) (Server, error) {
 	if c.Repo == nil {
 		return nil, errors.New("repository must be not nil")
 	}
+	tpl, err := newTemplates()
+	if err != nil {
+		return nil, err
+	}
 	mux := http.NewServeMux()
-	mux.Handle("/ping", newPingHandler())
-	return &server{
+	out := &server{
 		repo: c.Repo,
 		srv: &http.Server{
 			Addr:    ":" + strconv.Itoa(int(c.Port)),
 			Handler: mux,
 		},
-	}, nil
+		tpl: tpl,
+	}
+	mux.Handle("/", newHomeHandler(out))
+	mux.Handle("/ping", newPingHandler())
+	mux.Handle("/static/", http.FileServer(http.FS(staticFiles)))
+	return out, nil
 }
 
 // Close gracefully shuts down the server.

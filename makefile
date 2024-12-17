@@ -31,3 +31,6 @@ build_darwin_amd64:
 
 run: build
 	'.build/$(BINARY_NAME_UNIX)'
+
+clean:
+	rm .build/vic*
