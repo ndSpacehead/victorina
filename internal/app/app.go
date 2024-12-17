@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -59,5 +60,6 @@ func Run() error {
 		}
 		return nil
 	})
+	fmt.Printf("open UI: %s\n", srv.Address())
 	return g.Wait()
 }

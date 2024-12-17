@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"victorina/internal/model"
 	"victorina/internal/storage"
@@ -24,6 +25,9 @@ type Server interface {
 
 	// Close gracefully shuts down the server.
 	Close(context.Context) error
+
+	// Address returns TCP address for the server to listen on.
+	Address() string
 }
 
 // Config - configuration values for HTTP-server.
@@ -78,4 +82,20 @@ func (s *server) Close(ctx context.Context) error {
 // Serve starts listening and handling requests on incoming connections.
 func (s *server) Serve() error {
 	return s.srv.ListenAndServe()
+}
+
+// Address returns TCP address for the server to listen on.
+func (s *server) Address() string {
+	local := "http://127.0.0.1"
+	if s.srv.Addr == "" {
+		return local
+	}
+	parts := strings.Split(s.srv.Addr, ":")
+	if len(parts) < 2 {
+		return local
+	}
+	if parts[0] == "" {
+		parts[0] = local
+	}
+	return strings.Join(parts, ":")
 }
