@@ -58,6 +58,10 @@ func New(c Config) (Server, error) {
 	mux.Handle("/", newHomeHandler(out))
 	mux.Handle("/ping", newPingHandler())
 	mux.Handle("/static/", http.FileServer(http.FS(staticFiles)))
+	mux.Handle("/questions", newQuestionsHandler(out))
+	mux.Handle("/questions/{id}", newQuestionHandler(out))
+	mux.Handle("/questions/{id}/edit", newEditQuestionHandler(out))
+	mux.Handle("/questions/new", newNewQuestionHandler(out))
 	return out, nil
 }
 
