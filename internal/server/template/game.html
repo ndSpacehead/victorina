@@ -1,0 +1,65 @@
+{{ block "game" . }}
+<header>
+    {{ template "nav" "Игра" }}
+</header>
+<main>
+    <section>
+        <div id="current-question" class="m-3">
+            {{ template "current-question" .Current }}
+        </div>
+    </section>
+    <section>
+        <div class="container-fluid mt-5">
+            <div class="d-flex align-content-around align-items-center flex-wrap">
+                {{ template "scores" .Scores }}
+            </div>
+        </div>
+    </section>
+</main>
+{{ end }}
+
+
+{{ block "scores" . }}
+    {{ range . }}
+        {{ template "card" . }}
+    {{ else }}
+    <a class="btn btn-primary" href="/" role="button">Закрыть</a>
+    {{ end }}
+{{ end }}
+
+
+{{ block "card" . }}
+<div id="cards-{{ . }}" hx-swap="outerHTML" title="случайный вопрос на {{ . }} баллов" class="card shadow m-4 mx-auto" style="width: 10rem; height: 5rem;">
+    <input type="button" hx-delete="/game/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
+</div>
+{{ end }}
+
+
+{{ block "oob-card" . }}
+<div id="cards-{{ . }}" hx-swap="outerHTML" title="случайный вопрос на {{ . }} баллов" class="card shadow m-4 mx-auto" style="width: 10rem; height: 5rem;">
+    <input type="button" hx-delete="/game/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
+</div>
+{{ end }}
+
+
+{{ block "current-question" . }}
+<div class="form-floating">
+    <textarea id="question" placeholder="" name="question" readonly class="form-control" style="height: 7rem;">{{ .Question }}</textarea>
+    <label for="question">Вопрос</label>
+</div>
+<div class="form-floating mt-3">
+    <textarea id="answer" placeholder="" name="answer" readonly class="form-control" style="height: 5rem;">{{ .Answer }}</textarea>
+    <label for="answer">Ответ</label>
+</div>
+<div class="form-floating mt-3">
+    <input id="score" placeholder="0" name="score" min="0" readonly class="form-control" value="{{ .Score }}"/>
+    <label for="score">Баллы</label>
+</div>
+{{ end }}
+
+
+{{ block "oob-current-question" . }}
+<div id="current-question" hx-swap-oob="innerHTML">
+    {{ template "current-question" . }}
+</div>
+{{ end }}

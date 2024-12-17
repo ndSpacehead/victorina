@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"victorina/internal/model"
 	"victorina/internal/storage"
 )
 
@@ -35,6 +36,7 @@ type server struct {
 	repo storage.Repository
 	srv  *http.Server
 	tpl  *templates
+	game *model.Game
 }
 
 // New is a constructor of HTTP-server.
@@ -53,7 +55,8 @@ func New(c Config) (Server, error) {
 			Addr:    ":" + strconv.Itoa(int(c.Port)),
 			Handler: mux,
 		},
-		tpl: tpl,
+		tpl:  tpl,
+		game: new(model.Game),
 	}
 	mux.Handle("/", newHomeHandler(out))
 	mux.Handle("/ping", newPingHandler())
@@ -62,6 +65,8 @@ func New(c Config) (Server, error) {
 	mux.Handle("/questions/{id}", newQuestionHandler(out))
 	mux.Handle("/questions/{id}/edit", newEditQuestionHandler(out))
 	mux.Handle("/questions/new", newNewQuestionHandler(out))
+	mux.Handle("/game", newGameHandler(out))
+	mux.Handle("/game/{score}", newNextQuestionHandler(out))
 	return out, nil
 }
 
@@ -73,17 +78,4 @@ func (s *server) Close(ctx context.Context) error {
 // Serve starts listening and handling requests on incoming connections.
 func (s *server) Serve() error {
 	return s.srv.ListenAndServe()
-}
-
-func newPingHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var code int
-		switch r.Method {
-		case http.MethodGet, http.MethodHead, http.MethodOptions:
-			code = http.StatusOK
-		default:
-			code = http.StatusMethodNotAllowed
-		}
-		w.WriteHeader(code)
-	}
 }
