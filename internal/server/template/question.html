@@ -18,6 +18,11 @@
         {{ template "question" . }}
         {{ end }}
         </div>
+        <script>
+            function getQiestionID() {
+                return document.getElementById("question-id").value;
+            };
+        </script>
     </div>
 </main>
 {{ end }}
@@ -35,7 +40,7 @@
                 <button class="btn btn-outline-warning border-0" hx-get="/questions/{{ .ID }}/edit" hx-swap="none" title="изменить">
                     <img src="/static/pic/pen.svg" height="24" aria-hidden="true">
                 </button>
-                <button class="btn btn-outline-danger border-0" hx-delete="/questions/{{ .ID }}" hx-swap="outerHTML" hx-target="#question-{{ .ID }}"  title="удалить">
+                <button class="btn btn-outline-danger border-0" hx-delete="/questions/{{ .ID }}" hx-headers='js:{"X-Question-ID": getQiestionID()}' hx-swap="outerHTML" hx-target="#question-{{ .ID }}"  title="удалить">
                     <img src="/static/pic/trash-bin.svg" height="24" aria-hidden="true">
                 </button>
             </div></td>
@@ -95,6 +100,7 @@
 
 
 {{ block "question-form-elements" . }}
+<input hidden id="question-id" value="{{ .ID }}">
 <div class="form-floating">
     <textarea id="question" placeholder="" name="question" class="form-control">{{ .Question }}</textarea>
     <label for="question">{{ if .ID }}Вопрос{{ else }}Новый вопрос{{ end }}</label>

@@ -103,6 +103,12 @@ func putQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request
 }
 
 func deleteQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request) {
+	if qid := r.Header.Get("X-Question-ID"); qid == id.String() {
+		if q, err := s.repo.ReadQuestion(r.Context(), id); err == nil {
+			q.ID = uuid.Nil
+			s.tpl.render(w, "oob-question-form", questionToSchema(*q))
+		}
+	}
 	if err := s.repo.DeleteQuestion(r.Context(), id); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
