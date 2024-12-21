@@ -33,6 +33,7 @@
     <title>Викторина</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
     <script src="/static/js/htmx.js"></script>
+    <script src="/static/js/toast.js" defer></script>
 </head>
 <body>
     {{ if .Game }}
@@ -40,6 +41,7 @@
     {{ else if .Questions }}
     {{ template "questions" .Questions }}
     {{ end }}
+    <section id="toast-container" class="position-absolute bottom-0 end-0"></section>
 </body>
 </html>
 {{ end }}

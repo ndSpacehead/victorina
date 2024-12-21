@@ -13,37 +13,33 @@ import (
 func getQuestions(s *server, w http.ResponseWriter, r *http.Request) {
 	qs, err := s.repo.AllQuestions(r.Context())
 	if err != nil && !errors.Is(err, model.ErrNotFound) {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeInternalError(w, "Не удалось получить список вопросов")
 		return
 	}
 	if err := s.tpl.render(w, "container", containerWithQuestions(qs)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeRenderError(w)
 	}
 }
 
 func getQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request) {
 	q, err := s.repo.ReadQuestion(r.Context(), id)
 	if err != nil {
-		code := http.StatusInternalServerError
-		if errors.Is(err, model.ErrNotFound) {
-			code = http.StatusNotFound
-		}
-		w.WriteHeader(code)
+		writeNotFoundError(w, err, "Вопрос не найден", "Не удалось выполнить поиск вопроса")
 		return
 	}
 	if err := s.tpl.render(w, "question", *q); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeRenderError(w)
 	}
 }
 
 func postQuestion(s *server, w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeBadRequest(w, "Не удалось прочитать данные формы")
 		return
 	}
 	score, err := strconv.Atoi(r.PostFormValue("score"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeBadRequest(w, "Недопустимое значение оценки вопроса: %q", r.PostFormValue("score"))
 		return
 	}
 	id, err := s.repo.CreateQuestion(r.Context(), model.CreateQuestionRequest{
@@ -52,31 +48,31 @@ func postQuestion(s *server, w http.ResponseWriter, r *http.Request) {
 		Score:  score,
 	})
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeInternalError(w, "Не удалось записать новый вопрос")
 		return
 	}
 	q, err := s.repo.ReadQuestion(r.Context(), id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeInternalError(w, "Не удалось прочитать новый вопрос")
 		return
 	}
 	if err := s.tpl.render(w, "question-form", questionToSchema(model.Question{})); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeRenderError(w)
 		return
 	}
 	if err := s.tpl.render(w, "oob-question", questionToSchema(*q)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeRenderError(w)
 	}
 }
 
 func putQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeBadRequest(w, "Не удалось прочитать данные формы")
 		return
 	}
 	score, err := strconv.Atoi(r.PostFormValue("score"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeBadRequest(w, "Недопустимое значение оценки вопроса: %q", r.PostFormValue("score"))
 		return
 	}
 	if err := s.repo.UpdateQuestion(r.Context(), model.Question{
@@ -85,20 +81,16 @@ func putQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request
 		Answer: r.PostFormValue("answer"),
 		Score:  score,
 	}); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeInternalError(w, "Не перезаписать вопрос")
 		return
 	}
 	q, err := s.repo.ReadQuestion(r.Context(), id)
 	if err != nil {
-		code := http.StatusInternalServerError
-		if errors.Is(err, model.ErrNotFound) {
-			code = http.StatusNotFound
-		}
-		w.WriteHeader(code)
+		writeNotFoundError(w, err, "Вопрос не найден", "Не удалось выполнить поиск вопроса")
 		return
 	}
 	if err := s.tpl.render(w, "question", questionToSchema(*q)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeRenderError(w)
 	}
 }
 
@@ -106,10 +98,12 @@ func deleteQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Requ
 	if qid := r.Header.Get("X-Question-ID"); qid == id.String() {
 		if q, err := s.repo.ReadQuestion(r.Context(), id); err == nil {
 			q.ID = uuid.Nil
-			s.tpl.render(w, "oob-question-form", questionToSchema(*q))
+			if err := s.tpl.render(w, "oob-question-form", questionToSchema(*q)); err != nil {
+				setHXTriggerHeader(w, dangerToast, "Не удалось обновить форму вопроса")
+			}
 		}
 	}
 	if err := s.repo.DeleteQuestion(r.Context(), id); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeInternalError(w, "Не удалось удалить вопрос")
 	}
 }
