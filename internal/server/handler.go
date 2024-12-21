@@ -77,6 +77,28 @@ func newEditQuestionHandler(s *server) http.HandlerFunc {
 	}
 }
 
+func newAnswerHandler(s *server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeMethodNotAllowed(w, r.Method)
+			return
+		}
+		id, err := uuid.Parse(r.PathValue("id"))
+		if err != nil {
+			writeNotFound(w, "Вопрос не найден")
+			return
+		}
+		q, err := s.repo.ReadQuestion(r.Context(), id)
+		if err != nil {
+			writeNotFoundError(w, err, "Вопрос не найден", "Не удалось выполнить поиск вопроса")
+			return
+		}
+		if err := s.tpl.render(w, "showed-answer", q.Answer); err != nil {
+			writeRenderError(w)
+		}
+	}
+}
+
 func newNewQuestionHandler(s *server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
