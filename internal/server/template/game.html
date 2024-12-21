@@ -44,15 +44,22 @@
 
 {{ block "current-question" . }}
 <div class="form-floating">
-    <textarea id="question" placeholder="" name="question" readonly class="form-control" style="height: 7rem;">{{ .Question }}</textarea>
+    <textarea id="question" name="question" readonly class="form-control" style="height: 7rem;">{{ .Question }}</textarea>
     <label for="question">Вопрос</label>
 </div>
-<div class="form-floating mt-3">
-    <textarea id="answer" placeholder="" name="answer" readonly class="form-control" style="height: 5rem;">{{ .Answer }}</textarea>
-    <label for="answer">Ответ</label>
+{{ if .Answer }}
+<div id="hided-answer" hx-swap="outerHTML" class="form-floating input-group mt-3">
+    <button id="show-answer" hx-get="/questions/{{ .ID }}/answer" hx-target="#hided-answer" class="btn btn-outline-secondary" title="показать ответ">
+        <img src="/static/pic/eye.svg" height="24" aria-hidden="true">
+    </button>
+    <span id="answer" name="answer" readonly class="form-control">•••••</span>
+    <label for="answer" class="ms-5">Ответ</label>
 </div>
+{{ else }}
+{{ template "showed-answer" .Answer }}
+{{ end }}
 <div class="form-floating mt-3">
-    <input id="score" placeholder="0" name="score" min="0" readonly class="form-control" value="{{ .Score }}"/>
+    <span id="score" name="score" readonly class="form-control">{{ .Score }}</span>
     <label for="score">Баллы</label>
 </div>
 {{ end }}
@@ -61,5 +68,13 @@
 {{ block "oob-current-question" . }}
 <div id="current-question" hx-swap-oob="innerHTML">
     {{ template "current-question" . }}
+</div>
+{{ end }}
+
+
+{{ block "showed-answer" . }}
+<div class="form-floating mt-3">
+    <textarea id="answer" name="answer" readonly class="form-control" style="height: 5rem;">{{ . }}</textarea>
+    <label for="answer">Ответ</label>
 </div>
 {{ end }}

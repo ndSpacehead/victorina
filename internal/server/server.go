@@ -68,6 +68,7 @@ func New(c Config) (Server, error) {
 	mux.Handle("/questions", newQuestionsHandler(out))
 	mux.Handle("/questions/{id}", newQuestionHandler(out))
 	mux.Handle("/questions/{id}/edit", newEditQuestionHandler(out))
+	mux.Handle("/questions/{id}/answer", newAnswerHandler(out))
 	mux.Handle("/questions/new", newNewQuestionHandler(out))
 	mux.Handle("/game", newGameHandler(out))
 	mux.Handle("/game/{score}", newNextQuestionHandler(out))
