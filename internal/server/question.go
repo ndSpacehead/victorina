@@ -3,11 +3,10 @@ package server
 import (
 	"errors"
 	"net/http"
-	"strconv"
-
-	"victorina/internal/model"
 
 	"github.com/google/uuid"
+
+	"victorina/internal/model"
 )
 
 func getQuestions(s *server, w http.ResponseWriter, r *http.Request) {
@@ -37,15 +36,9 @@ func postQuestion(s *server, w http.ResponseWriter, r *http.Request) {
 		writeBadRequest(w, "Не удалось прочитать данные формы")
 		return
 	}
-	score, err := strconv.Atoi(r.PostFormValue("score"))
-	if err != nil {
-		writeBadRequest(w, "Недопустимое значение оценки вопроса: %q", r.PostFormValue("score"))
-		return
-	}
 	id, err := s.repo.CreateQuestion(r.Context(), model.CreateQuestionRequest{
 		Q:      r.PostFormValue("question"),
 		Answer: r.PostFormValue("answer"),
-		Score:  score,
 	})
 	if err != nil {
 		writeInternalError(w, "Не удалось записать новый вопрос")
@@ -70,18 +63,12 @@ func putQuestion(id uuid.UUID, s *server, w http.ResponseWriter, r *http.Request
 		writeBadRequest(w, "Не удалось прочитать данные формы")
 		return
 	}
-	score, err := strconv.Atoi(r.PostFormValue("score"))
-	if err != nil {
-		writeBadRequest(w, "Недопустимое значение оценки вопроса: %q", r.PostFormValue("score"))
-		return
-	}
 	if err := s.repo.UpdateQuestion(r.Context(), model.Question{
 		ID:     id,
 		Q:      r.PostFormValue("question"),
 		Answer: r.PostFormValue("answer"),
-		Score:  score,
 	}); err != nil {
-		writeInternalError(w, "Не перезаписать вопрос")
+		writeInternalError(w, "Не удалось перезаписать вопрос")
 		return
 	}
 	q, err := s.repo.ReadQuestion(r.Context(), id)

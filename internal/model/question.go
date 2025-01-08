@@ -29,12 +29,10 @@ type Question struct {
 	ID     uuid.UUID
 	Q      string
 	Answer string
-	Score  int
 }
 
 // CreateQuestionRequest is an object with question data for creating question entity.
 type CreateQuestionRequest struct {
 	Q      string
 	Answer string
-	Score  int
 }
