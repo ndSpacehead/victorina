@@ -16,7 +16,12 @@ func newHomeHandler(s *server) http.HandlerFunc {
 			writeMethodNotAllowed(w, r.Method)
 			return
 		}
-		if err := s.tpl.render(w, "index", nil); err != nil {
+		scs, err := s.repo.AllScenarios(r.Context())
+		if err != nil {
+			writeInternalError(w, "Не удалось получить список сценариев")
+			return
+		}
+		if err := s.tpl.render(w, "index", scenariosToSchema(scs)); err != nil {
 			writeRenderError(w)
 		}
 	}
@@ -308,18 +313,37 @@ func newEditScenariosQuestionHandler(s *server) http.HandlerFunc {
 		}
 	}
 }
+
+func newGameHandler(_ *server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		setHXTriggerHeader(w, infoToast, "Устаревший режим игры не доступен")
+		w.WriteHeader(http.StatusNotImplemented)
+	}
+}
+
+func newScenarioGameHandler(s *server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			writeMethodNotAllowed(w, r.Method)
 			return
 		}
-		questions, err := s.repo.AllQuestions(r.Context())
+		id, err := uuid.Parse(r.PathValue("id"))
+		if err != nil {
+			writeNotFound(w, "Сценарий не найден")
+			return
+		}
+		sc, err := s.repo.ReadScenario(r.Context(), id)
+		if err != nil {
+			writeNotFoundError(w, err, "Сценарий не найден", "Не удалось прочитать сценарий")
+			return
+		}
+		questions, err := s.repo.AllAssignedQuestions(r.Context(), id)
 		if err != nil {
 			writeInternalError(w, "Не удалось получить список вопросов")
 			return
 		}
 		s.game.Reset(questions)
-		if err := s.tpl.render(w, "container", containerWithGame(s.game.Scores())); err != nil {
+		if err := s.tpl.render(w, "container", containerWithGame(sc.Name, s.game.Scores())); err != nil {
 			writeRenderError(w)
 		}
 	}
@@ -346,7 +370,7 @@ func newNextQuestionHandler(s *server) http.HandlerFunc {
 			writeNotFoundError(w, err, "Вопрос не найден", "Не удалось выполнить поиск вопроса")
 			return
 		}
-		if err := s.tpl.render(w, "oob-current-question", questionToSchema(*q)); err != nil {
+		if err := s.tpl.render(w, "oob-current-question", questionToGameQuestionSchema(*q, score)); err != nil {
 			writeRenderError(w)
 			return
 		}

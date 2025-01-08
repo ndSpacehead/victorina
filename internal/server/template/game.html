@@ -3,7 +3,10 @@
     {{ template "nav" "Игра" }}
 </header>
 <main>
-    <section>
+    <section class="d-flex mt-4 h5 justify-content-center">
+        <span>{{ .Name }}</span>
+    </section>
+    <section class="mt-4">
         <div id="current-question" class="m-3">
             {{ template "current-question" .Current }}
         </div>
@@ -30,14 +33,14 @@
 
 {{ block "card" . }}
 <div id="cards-{{ . }}" hx-swap="outerHTML" title="случайный вопрос на {{ . }} баллов" class="card shadow m-4 mx-auto" style="width: 10rem; height: 5rem;">
-    <input type="button" hx-delete="/game/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
+    <input type="button" hx-delete="/game/next/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
 </div>
 {{ end }}
 
 
 {{ block "oob-card" . }}
 <div id="cards-{{ . }}" hx-swap="outerHTML" title="случайный вопрос на {{ . }} баллов" class="card shadow m-4 mx-auto" style="width: 10rem; height: 5rem;">
-    <input type="button" hx-delete="/game/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
+    <input type="button" hx-delete="/game/next/{{ . }}" hx-target="#cards-{{ . }}" class="card-body align-middle text-center btn btn-outline-dark bg-gradient border-0" value="{{ . }}"/>
 </div>
 {{ end }}
 
@@ -76,5 +79,33 @@
 <div class="form-floating mt-3">
     <textarea id="answer" name="answer" readonly class="form-control" style="height: 5rem;">{{ . }}</textarea>
     <label for="answer">Ответ</label>
+</div>
+{{ end }}
+
+
+{{ block "scenario-game" . }}
+<div id="question-{{ .ID }}" class="mt-3 pt-2 border rounded bg-light">
+    <table>
+        <colgroup>
+            <col span="1" style="width: 0%;">
+            <col span="1" style="width: 100%;">
+        </colgroup>
+        <tbody><tr>
+            <td>
+                <div class="ms-2">
+                    <button class="btn btn-outline-success border-0" onclick="location.href='/game/scenarios/{{ .ID }}'" type="button" title="играть сценарий">
+                        <img src="/static/pic/play.svg" height="24" aria-hidden="true">
+                    </button>
+                </div>
+            </td>
+            <td class="container">
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col">
+                        <span class="form-control text-truncate" title="{{ .Description }}">{{ .Name }}</span>
+                    </div>
+                </div>
+            </td>
+        </tr></tbody>
+    </table>
 </div>
 {{ end }}

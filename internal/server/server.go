@@ -82,7 +82,8 @@ func New(c Config) (Server, error) {
 	mux.Handle("/scenarios/{sid}/questions/{qid}/edit", newEditScenariosQuestionHandler(out))
 	mux.Handle("/scenarios/new", newNewScenarioHandler(out))
 	mux.Handle("/game", newGameHandler(out))
-	mux.Handle("/game/{score}", newNextQuestionHandler(out))
+	mux.Handle("/game/scenarios/{id}", newScenarioGameHandler(out))
+	mux.Handle("/game/next/{score}", newNextQuestionHandler(out))
 	return out, nil
 }
 

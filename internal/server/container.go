@@ -26,8 +26,9 @@ type scenariosQuestions struct {
 }
 
 type game struct {
+	Name    string
 	Scores  []int
-	Current questionSchema
+	Current gameQuestionSchema
 }
 
 func containerWithQuestions(qs []model.Question) container {
@@ -49,6 +50,7 @@ func containerWithScenario(scs []model.Scenario) container {
 func containerWithGame(name string, scores []int) container {
 	return container{
 		Game: &game{
+			Name:   name,
 			Scores: scores,
 		},
 	}

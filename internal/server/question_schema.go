@@ -69,3 +69,19 @@ func assignedQuestionsToSchema(aqs []model.AssignedQuestion, sid uuid.UUID) []as
 	}
 	return out
 }
+
+type gameQuestionSchema struct {
+	ID       string `json:"id"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+	Score    int    `json:"score"`
+}
+
+func questionToGameQuestionSchema(q model.Question, score int) gameQuestionSchema {
+	return gameQuestionSchema{
+		ID:       q.ID.String(),
+		Question: q.Q,
+		Answer:   q.Answer,
+		Score:    score,
+	}
+}
