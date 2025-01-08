@@ -32,7 +32,10 @@ type Server interface {
 
 // Config - configuration values for HTTP-server.
 type Config struct {
+	// Port specifies the TCP port for the server to listen on.
 	Port uint16
+
+	// Repo is a DB repository.
 	Repo storage.Repository
 }
 
@@ -70,6 +73,14 @@ func New(c Config) (Server, error) {
 	mux.Handle("/questions/{id}/edit", newEditQuestionHandler(out))
 	mux.Handle("/questions/{id}/answer", newAnswerHandler(out))
 	mux.Handle("/questions/new", newNewQuestionHandler(out))
+	mux.Handle("/questions/{id}/assign", newAssignQuestionHandler(out))
+	mux.Handle("/scenarios", newScenariosHandler(out))
+	mux.Handle("/scenarios/{id}", newScenarioHandler(out))
+	mux.Handle("/scenarios/{id}/edit", newEditScenarioHandler(out))
+	mux.Handle("/scenarios/{id}/questions", newScenariosQuestionsHandler(out))
+	mux.Handle("/scenarios/{sid}/questions/{qid}", newScenariosQuestionHandler(out))
+	mux.Handle("/scenarios/{sid}/questions/{qid}/edit", newEditScenariosQuestionHandler(out))
+	mux.Handle("/scenarios/new", newNewScenarioHandler(out))
 	mux.Handle("/game", newGameHandler(out))
 	mux.Handle("/game/{score}", newNextQuestionHandler(out))
 	return out, nil

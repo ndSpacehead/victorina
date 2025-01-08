@@ -1,0 +1,285 @@
+{{ block "scenarios" . }}
+<header>
+    {{ template "nav" "Сценарии" }}
+</header>
+<main>
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div id="scenario-part" class="col">
+                <div id="scenario-form" class="m-3">
+                    {{ template "scenario-form" .Form }}
+                </div>
+                <hr/>
+                <div class="m-3">
+                    <div>
+                        <button id="add-new-scenario" class="btn btn-outline-primary border-0" hx-get="/scenarios/new" hx-swap="none" title="добавить новый">
+                            <img src="/static/pic/add.svg" height="24" aria-hidden="true">
+                        </button>
+                    </div>
+                    <div id="scenarios" style="display: flex; flex-direction: column;">
+                        {{ range .List }}
+                        {{ template "scenario" . }}
+                        {{ end }}
+                    </div>
+                    <script>
+                        function getScenarioID() {
+                            return document.getElementById("scenario-id").value;
+                        };
+
+                        function getQuestionID() {
+                            return document.getElementById("question-id").value;
+                        };
+                    </script>
+                </div>
+            </div>
+            <div id="question-part" class="col">
+                {{ template "question-part" .Questions }}
+            </div>
+        </div>
+    </div>
+</main>
+{{ end }}
+
+
+{{ block "scenario" . }}
+<div id="scenario-{{ .ID }}" hx-swap="outerHTML" class="mt-3 pt-2 border rounded bg-light">
+    <table>
+        <colgroup>
+            <col span="1" style="width: 0%;">
+            <col span="1" style="width: 100%;">
+        </colgroup>
+        <tbody><tr>
+            <td><div class="btn-group-vertical ms-2">
+                <button class="btn btn-outline-warning border-0" hx-get="/scenarios/{{ .ID }}/edit" hx-swap="none" title="изменить">
+                    <img src="/static/pic/pen.svg" height="24" aria-hidden="true">
+                </button>
+                <button class="btn btn-outline-danger border-0" hx-delete="/scenarios/{{ .ID }}" hx-headers='js:{"X-Scenario-ID": getScenarioID()}' hx-swap="outerHTML" hx-target="#scenario-{{ .ID }}"  title="удалить">
+                    <img src="/static/pic/trash-bin.svg" height="24" aria-hidden="true">
+                </button>
+            </div></td>
+            <td class="container">
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col">
+                        <span class="form-control text-truncate" title="сценарий">{{ .Name }}</span>
+                    </div>
+                </div>
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col">
+                        <span class="form-control text-truncate" title="описание">{{ .Description }}</span>
+                    </div>
+                </div>
+            </td>
+        </tr></tbody>
+    </table>
+</div>
+{{ end }}
+
+
+{{ block "oob-scenario" . }}
+<div id="scenarios" hx-swap-oob="afterend">
+    {{ template "scenario" . }}
+</div>
+{{ end }}
+
+
+{{ block "scenario-form" . }}
+    {{ if .ID }}
+        {{ template "scenario-form-update" . }}
+    {{ else }}
+        {{ template "scenario-form-new" . }}
+    {{ end }}
+{{ end }}
+
+
+{{ block "scenario-form-new" . }}
+<form hx-swap="outerHTML" hx-post="/scenarios">
+    {{ template "scenario-form-elements" . }}
+    <button type="submit" class="btn btn-outline-success border-0 mt-3">Добавить</button>
+</form>
+{{ end }}
+
+
+{{ block "scenario-form-update" . }}
+<form hx-swap="outerHTML" hx-put="/scenarios/{{ .ID }}" hx-target="#scenario-{{ .ID }}">
+    {{ template "scenario-form-elements" . }}
+    <button type="submit" class="btn btn-outline-success border-0 mt-3">Сохранить</button>
+</form>
+{{ end }}
+
+
+{{ block "scenario-form-elements" . }}
+<input hidden id="scenario-id" value="{{ .ID }}">
+<div class="form-floating">
+    <textarea id="scenario-name" placeholder="" name="name" class="form-control">{{ .Name }}</textarea>
+    <label for="scenario-name">{{ if .ID }}Сценарий{{ else }}Новый сценарий{{ end }}</label>
+</div>
+<div class="form-floating mt-3">
+    <textarea id="scenario-description" placeholder="" name="description" class="form-control">{{ .Description }}</textarea>
+    <label for="scenario-description">Ответ</label>
+</div>
+{{ end }}
+
+
+{{ block "oob-scenario-form" . }}
+<div id="scenario-form" hx-swap-oob="innerHTML">
+    {{ template "scenario-form" . }}
+</div>
+{{ end }}
+
+
+{{ block "question-part" . }}
+<div id="scenarios-question-form" class="m-3">
+    {{ template "scenarios-question-form" .Form }}
+</div>
+<hr/>
+<div>
+    <div class="text-center h4">Назначенные</div>
+    <div class="m-3">
+        <div id="assigned-questions" style="display: flex; flex-direction: column;">
+            {{ range .AssignedList }}
+            {{ template "assigned-question" . }}
+            {{ end }}
+        </div>
+    </div>
+</div>
+<hr/>
+<div>
+    <div class="text-center h4">Остальные</div>
+    <div class="m-3">
+        <div id="free-questions" style="display: flex; flex-direction: column;">
+            {{ range .FreeList }}
+            {{ template "free-question" . }}
+            {{ end }}
+        </div>
+    </div>
+</div>
+{{ end }}
+
+
+{{ block "oob-question-part" . }}
+<div id="question-part" hx-swap-oob="innerHTML">
+    {{ template "question-part" . }}
+</div>
+{{ end }}
+
+
+{{ block "scenarios-question-form" . }}
+    {{ if .Assigned }}
+        {{ template "scenarios-question-form-update" . }}
+    {{ else }}
+        {{ template "scenarios-question-form-add" . }}
+    {{ end }}
+{{ end }}
+
+
+{{ block "scenarios-question-form-add" . }}
+<form hx-post="/scenarios/{{ .SID }}/questions/{{ .QID }}" hx-swap="delete" hx-target="#question-{{ .QID }}">
+    {{ template "scenarios-question-form-elements" . }}
+    <button type="submit" class="btn btn-outline-success border-0 mt-3" {{ if not .SID }}disabled{{ end }}>Добавить</button>
+</form>
+{{ end }}
+
+
+{{ block "scenarios-question-form-update" . }}
+<form hx-swap="outerHTML" hx-put="/scenarios/{{ .SID }}/questions/{{ .QID }}" hx-target="#assigned-question-{{ .QID }}">
+    {{ template "scenarios-question-form-elements" . }}
+    <button type="submit" class="btn btn-outline-success border-0 mt-3">Сохранить</button>
+</form>
+{{ end }}
+
+
+{{ block "scenarios-question-form-elements" . }}
+<input hidden id="questions-scenario-id" value="{{ .SID }}">
+<input hidden id="question-id" value="{{ .QID }}">
+<div class="form-floating">
+    <textarea id="question" readonly placeholder="" class="form-control">{{ .Question }}</textarea>
+    <label for="question">Вопрос</label>
+</div>
+<div class="form-floating mt-3">
+    <input type="number" id="score" placeholder="0" name="score" min="0" class="form-control" value="{{ .Score }}" {{ if not .SID }}disabled{{ end }}/>
+    <label for="score">Баллы</label>
+</div>
+{{ end }}
+
+
+{{ block "oob-scenarios-question-form" . }}
+<div id="scenarios-question-form" hx-swap-oob="innerHTML">
+    {{ template "scenarios-question-form" . }}
+</div>
+{{ end }}
+
+
+{{ block "assigned-question" . }}
+<div id="assigned-question-{{ .QID }}" hx-swap="outerHTML" class="mt-3 pt-2 border rounded bg-light">
+    <table>
+        <colgroup>
+            <col span="1" style="width: 0%;">
+            <col span="1" style="width: 100%;">
+        </colgroup>
+        <tbody><tr>
+            <td><div class="btn-group-vertical ms-2">
+                <button class="btn btn-outline-warning border-0" hx-get="/scenarios/{{ .SID }}/questions/{{ .QID }}/edit" hx-swap="none" title="изменить">
+                    <img src="/static/pic/pen.svg" height="24" aria-hidden="true">
+                </button>
+                <button class="btn btn-outline-danger border-0" hx-delete="/scenarios/{{ .SID }}/questions/{{ .QID }}" hx-headers='js:{"X-Question-ID": getQuestionID()}' hx-swap="outerHTML" hx-target="#assigned-question-{{ .QID }}" title="удалить">
+                    <img src="/static/pic/minus.svg" height="24" aria-hidden="true">
+                </button>
+            </div></td>
+            <td class="container">
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col">
+                        <span class="form-control text-truncate" title="вопрос">{{ .Question }}</span>
+                    </div>
+                </div>
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col-auto">
+                        <span class="form-control border-0 bg-transparent" title="баллы">{{ .Score }}</span>
+                    </div>
+                </div>
+            </td>
+        </tr></tbody>
+    </table>
+</div>
+{{ end }}
+
+
+{{ block "oob-assigned-question" . }}
+<div id="assigned-questions" hx-swap-oob="beforebegin">
+    {{ template "assigned-question" . }}
+</div>
+{{ end }}
+
+
+{{ block "free-question" . }}
+<div id="question-{{ .ID }}" hx-swap="outerHTML" class="mt-3 pt-2 border rounded bg-light">
+    <table>
+        <colgroup>
+            <col span="1" style="width: 0%;">
+            <col span="1" style="width: 100%;">
+        </colgroup>
+        <tbody><tr>
+            <td>
+                <div class="ms-2">
+                    <button class="btn btn-outline-primary border-0" hx-get="/questions/{{ .ID }}/assign" hx-headers='js:{"X-Scenario-ID": getScenarioID()}' hx-swap="none" title="добавить">
+                        <img src="/static/pic/add.svg" height="24" aria-hidden="true">
+                    </button>
+                </div>
+            </td>
+            <td class="container">
+                <div class="row g-1 d-flex align-items-center mb-1">
+                    <div class="col">
+                        <span class="form-control text-truncate" title="вопрос">{{ .Question }}</span>
+                    </div>
+                </div>
+            </td>
+        </tr></tbody>
+    </table>
+</div>
+{{ end }}
+
+
+{{ block "oob-free-question" . }}
+<div id="free-questions" hx-swap-oob="beforebegin">
+    {{ template "free-question" . }}
+</div>
+{{ end }}
