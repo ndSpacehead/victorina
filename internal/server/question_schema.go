@@ -10,7 +10,6 @@ type questionSchema struct {
 	ID       string `json:"id"`
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
-	Score    int    `json:"score"`
 }
 
 func questionToSchema(q model.Question) questionSchema {
@@ -22,7 +21,6 @@ func questionToSchema(q model.Question) questionSchema {
 		ID:       id,
 		Question: q.Q,
 		Answer:   q.Answer,
-		Score:    q.Score,
 	}
 }
 

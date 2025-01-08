@@ -16,11 +16,10 @@ func (repo *repository) CreateQuestion(ctx context.Context, req model.CreateQues
 		id.String(),
 		req.Q,
 		req.Answer,
-		req.Score,
 	}
 	query := `
-INSERT INTO questions (external_id, question, answer, score)
-VALUES (?, ?, ?, ?);`
+INSERT INTO questions (external_id, question, answer)
+VALUES (?, ?, ?);`
 	_, err := repo.db.ExecContext(ctx, query, args...)
 	return id, err
 }
@@ -31,10 +30,10 @@ func (repo *repository) ReadQuestion(ctx context.Context, id uuid.UUID) (*model.
 		ID: id,
 	}
 	query := `
-SELECT question, answer, score
+SELECT question, answer
 FROM questions
 WHERE external_id = ?;`
-	if err := repo.db.QueryRowContext(ctx, query, id.String()).Scan(&out.Q, &out.Answer, &out.Score); err != nil {
+	if err := repo.db.QueryRowContext(ctx, query, id.String()).Scan(&out.Q, &out.Answer); err != nil {
 		if errors.Is(errSQLite(err), ErrNoRows) {
 			err = model.ErrQuestionNotFound
 		}
@@ -46,7 +45,7 @@ WHERE external_id = ?;`
 // AllQuestions returns list of all stored questions.
 func (repo *repository) AllQuestions(ctx context.Context) ([]model.Question, error) {
 	query := `
-SELECT external_id, question, answer, score
+SELECT external_id, question, answer
 FROM questions;`
 	rows, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
@@ -62,7 +61,7 @@ FROM questions;`
 			q  model.Question
 			id string
 		)
-		if err := rows.Scan(&id, &q.Q, &q.Answer, &q.Score); err != nil {
+		if err := rows.Scan(&id, &q.Q, &q.Answer); err != nil {
 			return nil, err
 		}
 		q.ID, err = uuid.Parse(id)
@@ -79,11 +78,10 @@ func (repo *repository) UpdateQuestion(ctx context.Context, req model.Question) 
 	args := []any{
 		req.Q,
 		req.Answer,
-		req.Score,
 		req.ID.String(),
 	}
 	query := `
-UPDATE questions SET question = ?, answer = ?, score = ?
+UPDATE questions SET question = ?, answer = ?
 WHERE external_id = ?;`
 	_, err := repo.db.ExecContext(ctx, query, args...)
 	return err
