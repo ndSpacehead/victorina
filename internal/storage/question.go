@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/google/uuid"
@@ -26,7 +25,7 @@ VALUES (?, ?, ?, ?);`
 	return id, err
 }
 
-// ReadQuestion returns question data from database by question ID.
+// ReadQuestion returns question data from database by question's ID.
 func (repo *repository) ReadQuestion(ctx context.Context, id uuid.UUID) (*model.Question, error) {
 	out := model.Question{
 		ID: id,
@@ -36,7 +35,7 @@ SELECT question, answer, score
 FROM questions
 WHERE external_id = ?;`
 	if err := repo.db.QueryRowContext(ctx, query, id.String()).Scan(&out.Q, &out.Answer, &out.Score); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(errSQLite(err), ErrNoRows) {
 			err = model.ErrQuestionNotFound
 		}
 		return nil, err
@@ -51,7 +50,7 @@ SELECT external_id, question, answer, score
 FROM questions;`
 	rows, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(errSQLite(err), ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err

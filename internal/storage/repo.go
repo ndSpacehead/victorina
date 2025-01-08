@@ -15,6 +15,7 @@ import (
 // Repository is an interface for DB.
 type Repository interface {
 	model.QuestionRepository
+	model.ScenarioRepository
 
 	// Close closes the database and prevents new queries from starting.
 	Close(context.Context) error
