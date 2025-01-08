@@ -3,6 +3,8 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -40,7 +42,7 @@ func New(c Config) (Repository, error) {
 	out := &repository{
 		db: db,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	if err := out.init(ctx); err != nil {
 		out.Close(context.Background())
@@ -59,18 +61,46 @@ func (repo *repository) Ping(ctx context.Context) error {
 	return repo.db.PingContext(ctx)
 }
 
-// init is naive implementation of migrations mechanism.
 func (repo *repository) init(ctx context.Context) error {
-	query := `
-CREATE TABLE IF NOT EXISTS questions (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	external_id VARCHAR(36) NOT NULL,
-	question TEXT NOT NULL,
-	answer TEXT NOT NULL,
-	score INTEGER NOT NULL
-);
+	return repo.upMigrations(ctx)
+}
 
-CREATE UNIQUE INDEX IF NOT EXISTS questions_external_id_idx ON questions (external_id);`
-	_, err := repo.db.ExecContext(ctx, query)
-	return err
+func (repo *repository) upMigrations(ctx context.Context) error {
+	if _, err := repo.db.QueryContext(
+		ctx,
+		fmt.Sprintf(`SELECT name FROM sqlite_master WHERE type='table' AND name='%s';`, migrationTableName),
+	); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		if migrationErr := repo.upMigration(ctx, initialMigration); migrationErr != nil {
+			return migrationErr
+		}
+	}
+	var current int
+	if err := repo.db.QueryRowContext(ctx, fmt.Sprintf(`SELECT COALESCE(MAX(version), 0) FROM %s;`, migrationTableName)).Scan(&current); err != nil {
+		return err
+	}
+	for i := current; i < len(migrations); i++ {
+		if err := repo.upMigration(ctx, migrations[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (repo *repository) upMigration(ctx context.Context, query string) error {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, query); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return nil
 }
