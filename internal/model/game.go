@@ -13,7 +13,7 @@ type Game struct {
 }
 
 // Reset resets game process state to initial.
-func (g *Game) Reset(questions []Question) {
+func (g *Game) Reset(questions []AssignedQuestion) {
 	g.scores = make(map[int][]uuid.UUID)
 	for _, question := range questions {
 		g.scores[question.Score] = append(g.scores[question.Score], question.ID)

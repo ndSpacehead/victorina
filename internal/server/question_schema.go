@@ -10,7 +10,6 @@ type questionSchema struct {
 	ID       string `json:"id"`
 	Question string `json:"question"`
 	Answer   string `json:"answer"`
-	Score    int    `json:"score"`
 }
 
 func questionToSchema(q model.Question) questionSchema {
@@ -22,7 +21,6 @@ func questionToSchema(q model.Question) questionSchema {
 		ID:       id,
 		Question: q.Q,
 		Answer:   q.Answer,
-		Score:    q.Score,
 	}
 }
 
@@ -32,4 +30,58 @@ func questionsToSchema(qs []model.Question) []questionSchema {
 		out = append(out, questionToSchema(q))
 	}
 	return out
+}
+
+type scenarioQuestionSchema struct {
+	SID      string `json:"sid"`
+	QID      string `json:"qid"`
+	Question string `json:"question"`
+	Score    int    `json:"score"`
+	Assigned bool   `json:"assigned"`
+}
+
+type assignedQuestionSchema struct {
+	SID      string `json:"sid"`
+	QID      string `json:"qid"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+	Score    int    `json:"score"`
+}
+
+func assignedQuestionToSchema(aq model.AssignedQuestion, sid uuid.UUID) assignedQuestionSchema {
+	var qid string
+	if aq.ID != uuid.Nil {
+		qid = aq.ID.String()
+	}
+	return assignedQuestionSchema{
+		SID:      sid.String(),
+		QID:      qid,
+		Question: aq.Q,
+		Answer:   aq.Answer,
+		Score:    aq.Score,
+	}
+}
+
+func assignedQuestionsToSchema(aqs []model.AssignedQuestion, sid uuid.UUID) []assignedQuestionSchema {
+	out := make([]assignedQuestionSchema, 0, len(aqs))
+	for _, aq := range aqs {
+		out = append(out, assignedQuestionToSchema(aq, sid))
+	}
+	return out
+}
+
+type gameQuestionSchema struct {
+	ID       string `json:"id"`
+	Question string `json:"question"`
+	Answer   string `json:"answer"`
+	Score    int    `json:"score"`
+}
+
+func questionToGameQuestionSchema(q model.Question, score int) gameQuestionSchema {
+	return gameQuestionSchema{
+		ID:       q.ID.String(),
+		Question: q.Q,
+		Answer:   q.Answer,
+		Score:    score,
+	}
 }
