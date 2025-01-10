@@ -67,14 +67,15 @@ func (repo *repository) init(ctx context.Context) error {
 }
 
 func (repo *repository) upMigrations(ctx context.Context) error {
-	if _, err := repo.db.QueryContext(
+	var name string
+	if err := repo.db.QueryRowContext(
 		ctx,
 		fmt.Sprintf(`SELECT name FROM sqlite_master WHERE type='table' AND name='%s';`, migrationTableName),
-	); err != nil {
+	).Scan(&name); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
-		if migrationErr := repo.upMigration(ctx, initialMigration); migrationErr != nil {
+		if migrationErr := repo.upMigration(ctx, initialMigration, 0); migrationErr != nil {
 			return migrationErr
 		}
 	}
@@ -83,19 +84,23 @@ func (repo *repository) upMigrations(ctx context.Context) error {
 		return err
 	}
 	for i := current; i < len(migrations); i++ {
-		if err := repo.upMigration(ctx, migrations[i]); err != nil {
+		if err := repo.upMigration(ctx, migrations[i], i+1); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (repo *repository) upMigration(ctx context.Context, query string) error {
+func (repo *repository) upMigration(ctx context.Context, query string, number int) error {
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, query); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, upVersionQuery, number); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

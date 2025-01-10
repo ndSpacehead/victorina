@@ -2,7 +2,10 @@ package storage
 
 import "fmt"
 
-const migrationTableName = "migrations"
+const (
+	migrationTableName = "migrations"
+	upVersionQuery = `INSERT INTO ` + migrationTableName + ` (version) VALUES (?);`
+)
 
 var initialMigration = fmt.Sprintf(`
 CREATE TABLE %[1]s (
@@ -10,12 +13,10 @@ CREATE TABLE %[1]s (
 	version INTEGER NOT NULL
 );
 
-CREATE UNIQUE INDEX migrations_version_idx ON %[1]s (version DESC);
-
-INSERT INTO %[1]s (version) VALUES (1);`, migrationTableName)
+CREATE UNIQUE INDEX migrations_version_idx ON %[1]s (version DESC);`, migrationTableName)
 
 var migrations = []string{
-	fmt.Sprintf(`
+	`
 CREATE TABLE IF NOT EXISTS questions (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	external_id VARCHAR(36) NOT NULL,
@@ -24,11 +25,9 @@ CREATE TABLE IF NOT EXISTS questions (
 	score INTEGER NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS questions_external_id_idx ON questions (external_id);
+CREATE UNIQUE INDEX IF NOT EXISTS questions_external_id_idx ON questions (external_id);`,
 
-INSERT INTO %s (version) VALUES (2);`, migrationTableName),
-
-	fmt.Sprintf(`
+	`
 CREATE TABLE scenarios (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	external_id VARCHAR(36) NOT NULL,
@@ -48,7 +47,9 @@ CREATE TABLE scenarios_questions (
 );
 
 INSERT INTO scenarios (external_id, "name", description)
-SELECT '00000000-0000-0000-0000-000000000001', 'v1.0.0', 'Обновление имеющейся базы вопросов на новую версию';
+SELECT '00000000-0000-0000-0000-000000000001', 'v1.0.0', 'Обновление имеющейся базы вопросов на новую версию'
+WHERE
+	EXISTS (SELECT TRUE FROM questions);
 
 INSERT INTO scenarios_questions (scenario_id, question_id, score)
 SELECT sc.id, q.id, q.score
@@ -57,7 +58,5 @@ WHERE
 	EXISTS (SELECT TRUE FROM questions)
 	AND sc.external_id = '00000000-0000-0000-0000-000000000001';
 
-ALTER TABLE questions DROP COLUMN score;
-
-INSERT INTO %s (version) VALUES (3);`, migrationTableName),
+ALTER TABLE questions DROP COLUMN score;`,
 }
