@@ -60,12 +60,12 @@
             <td class="container">
                 <div class="row g-1 d-flex align-items-center mb-1">
                     <div class="col">
-                        <span class="form-control text-truncate" title="сценарий">{{ .Name }}</span>
+                        <span class="form-control text-truncate" title="сценарий">{{ if .Name }}{{ .Name }}{{ else }} {{ end}}</span>
                     </div>
                 </div>
                 <div class="row g-1 d-flex align-items-center mb-1">
                     <div class="col">
-                        <span class="form-control text-truncate" title="описание">{{ .Description }}</span>
+                        <span class="form-control text-truncate" title="описание">{{ if .Description }}{{ .Description }}{{ else }} {{ end}}</span>
                     </div>
                 </div>
             </td>
@@ -115,7 +115,7 @@
 </div>
 <div class="form-floating mt-3">
     <textarea id="scenario-description" placeholder="" name="description" class="form-control">{{ .Description }}</textarea>
-    <label for="scenario-description">Ответ</label>
+    <label for="scenario-description">Описание</label>
 </div>
 {{ end }}
 
@@ -228,7 +228,7 @@
             <td class="container">
                 <div class="row g-1 d-flex align-items-center mb-1">
                     <div class="col">
-                        <span class="form-control text-truncate" title="вопрос">{{ .Question }}</span>
+                        <span class="form-control text-truncate" title="вопрос">{{ if .Question }}{{ .Question}}{{ else }} {{ end}}</span>
                     </div>
                 </div>
                 <div class="row g-1 d-flex align-items-center mb-1">
